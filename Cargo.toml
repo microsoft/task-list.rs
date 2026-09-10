@@ -32,6 +32,14 @@ time = { version = "0.3", features = ["formatting", "parsing"] }
 utoipa = { version = "5", features = ["time", "uuid"] }
 utoipa-swagger-ui = { version = "9", features = ["axum"] }
 
+# Azure Cosmos DB (preview SDK — pinned exact; the primary persistence adapter behind the
+# TaskRepository port). `key_auth` enables the well-known emulator key locally; the cloud
+# path uses managed identity via azure_identity. Contained entirely in `infrastructure`.
+azure_data_cosmos = { version = "=0.36.0", features = ["key_auth"] }
+azure_core = "1"
+azure_identity = "1"
+futures = "0.3"
+
 # Telemetry seam (skeleton: tracing only; App Insights lands in a later task)
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

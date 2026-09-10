@@ -51,11 +51,63 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": [
+          "tasks"
+        ],
+        "operationId": "create_task",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTaskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "The created task",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or malformed request body (bad title, malformed JSON, or schema mismatch)",
+            "content": {
+              "application/problem+json": {}
+            }
+          },
+          "415": {
+            "description": "Unsupported media type (expected application/json)",
+            "content": {
+              "application/problem+json": {}
+            }
+          }
+        }
       }
     }
   },
   "components": {
     "schemas": {
+      "CreateTaskRequest": {
+        "type": "object",
+        "description": "Request body for creating a task. Title-only: status defaults to `Todo` and the id /\ntimestamps are server-minted, so the caller supplies just the title. The domain rule\n(trimmed, 1..=200, non-blank) is enforced by `Title::parse` in the use-case.",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          }
+        }
+      },
       "HealthResponse": {
         "type": "object",
         "description": "Health payload. `status` is always `ok`; `time` is sourced through the `Clock` port,\nproving that seam is wired end to end.",

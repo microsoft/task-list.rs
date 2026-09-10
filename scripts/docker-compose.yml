@@ -1,0 +1,31 @@
+# Local development services for task-list.rs — Cosmos ONLY.
+# (Blob/Azurite is deferred to a future feature; do not add it here.)
+#
+# The Azure Cosmos DB Linux emulator (vNext, gateway mode, API for NoSQL) backs the
+# CosmosTaskRepository when TASKLIST_ENV=local and TASKLIST_PERSISTENCE=cosmos. The
+# endpoint (https://localhost:8081) and the well-known emulator key are wired up by the
+# config loader / adapter — no secrets live here.
+#
+# Usage:
+#   docker compose -f scripts/docker-compose.yml up -d --wait
+#   $env:TASKLIST_COSMOS_EMULATOR = "1"
+#   cargo test -p tasklist-infrastructure --test cosmos_etag -- --nocapture
+#   docker compose -f scripts/docker-compose.yml down
+services:
+  cosmos:
+    image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:vnext-preview
+    container_name: tasklist-cosmos
+    # The emulator serves HTTP by default; the SDKs require HTTPS, so opt in. On localhost
+    # the adapter trusts the emulator's self-signed cert (ServerCertificateValidation::
+    # RequiredUnlessEmulator).
+    environment:
+      PROTOCOL: https
+    ports:
+      - "8081:8081" # gateway endpoint  -> https://localhost:8081
+      - "8080:8080" # health probe      -> http://localhost:8080/ready
+      - "1234:1234" # data explorer     -> http://localhost:1234
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/ready"]
+      interval: 5s
+      timeout: 5s
+      retries: 40

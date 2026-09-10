@@ -29,7 +29,7 @@ export interface paths {
         };
         get: operations["list_tasks"];
         put?: never;
-        post?: never;
+        post: operations["create_task"];
         delete?: never;
         options?: never;
         head?: never;
@@ -40,6 +40,14 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * @description Request body for creating a task. Title-only: status defaults to `Todo` and the id /
+         *     timestamps are server-minted, so the caller supplies just the title. The domain rule
+         *     (trimmed, 1..=200, non-blank) is enforced by `Title::parse` in the use-case.
+         */
+        CreateTaskRequest: {
+            title: string;
+        };
         /**
          * @description Health payload. `status` is always `ok`; `time` is sourced through the `Clock` port,
          *     proving that seam is wired end to end.
@@ -116,6 +124,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TaskDto"][];
+                };
+            };
+        };
+    };
+    create_task: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTaskRequest"];
+            };
+        };
+        responses: {
+            /** @description The created task */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskDto"];
+                };
+            };
+            /** @description Invalid or malformed request body (bad title, malformed JSON, or schema mismatch) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
+                };
+            };
+            /** @description Unsupported media type (expected application/json) */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": unknown;
                 };
             };
         };

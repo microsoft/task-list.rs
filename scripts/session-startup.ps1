@@ -14,6 +14,11 @@
   one), any leftover `building`/`broken` signal from a prior, now-gone session is reset to `ready`
   via scripts/set-dev-state.ps1 before the watch starts. This runs ONLY on the fresh-boot path — if a
   watch is already live it no-ops and dev-state is left untouched. There is no time-based coercion.
+
+  Conditional Cosmos preflight: on the fresh-boot path, before starting the watch, it runs
+  scripts/cosmos-preflight.ps1, which waits for the Cosmos DB Emulator ONLY when local dev is opted
+  into Cosmos (TASKLIST_PERSISTENCE=cosmos). On the default in-memory loop it is a no-op (no probe,
+  no wait); the preflight is advisory and never blocks the watch from starting.
 #>
 [CmdletBinding()]
 param()
@@ -24,6 +29,7 @@ $runApp = Join-Path $PSScriptRoot 'run-app.ps1'
 $pidFile = Join-Path $PSScriptRoot '.liveness-watch.pid'
 $stateFile = Join-Path $PSScriptRoot '.dev-state.json'
 $setState = Join-Path $PSScriptRoot 'set-dev-state.ps1'
+$cosmosPreflight = Join-Path $PSScriptRoot 'cosmos-preflight.ps1'
 
 if (-not (Test-Path $secretsFile)) {
     Write-Warning "scripts/dev-secrets.local.ps1 missing — copy dev-secrets.template.ps1 and fill it in. The watch will start but the app can't fully start until secrets exist."
@@ -59,6 +65,15 @@ if (Test-Path $stateFile) {
         }
     }
     catch { Write-Warning "session-startup: could not read scripts/.dev-state.json to clear a stale signal: $($_.Exception.Message)" }
+}
+
+# Conditional Cosmos preflight (fresh-boot path only): wait for the Cosmos DB Emulator ONLY when
+# local dev is opted into Cosmos persistence (TASKLIST_PERSISTENCE=cosmos). On the default
+# in-memory loop this is a no-op — no probe, no wait — so the fast startup is preserved exactly. It
+# is advisory (never blocks): on timeout it prints an actionable message and the watch still starts.
+if (Test-Path $cosmosPreflight) {
+    try { & $cosmosPreflight }
+    catch { Write-Warning "session-startup: Cosmos preflight error (ignored): $($_.Exception.Message)" }
 }
 
 Start-Process pwsh -ArgumentList '-NoProfile', '-File', $runApp, 'Watch' -WindowStyle Hidden

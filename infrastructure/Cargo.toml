@@ -10,6 +10,16 @@ tasklist-domain = { workspace = true }
 tasklist-application = { workspace = true }
 async-trait = { workspace = true }
 time = { workspace = true }
+azure_data_cosmos = { workspace = true }
+azure_core = { workspace = true }
+azure_identity = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+futures = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+tracing = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true }
+uuid = { workspace = true }

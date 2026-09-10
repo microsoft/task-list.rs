@@ -34,6 +34,46 @@ jobs:
       - name: Release build
         run: cargo build --release -p tasklist-api
 
+  integration:
+    name: integration (cosmos emulator)
+    runs-on: ubuntu-latest
+    services:
+      # Azure Cosmos DB Linux emulator (vNext, API for NoSQL). It serves HTTP by default,
+      # so PROTOCOL=https opts into TLS (service containers can only pass env, not args).
+      # GitHub waits for the health check — which curls the emulator's own readiness probe
+      # inside the container — to pass before running the job's steps.
+      cosmos:
+        image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:vnext-preview
+        ports:
+          - 8081:8081
+        env:
+          PROTOCOL: https
+        options: >-
+          --health-cmd "curl -sf http://localhost:8080/ready"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 40
+          --health-start-period 30s
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Confirm emulator gateway is reachable
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sk https://localhost:8081/ -o /dev/null 2>/dev/null; then
+              echo "gateway reachable"; exit 0
+            fi
+            echo "waiting for gateway ($i/30)"; sleep 5
+          done
+          echo "gateway did not become reachable" >&2; exit 1
+      - name: ETag round-trip integration test
+        env:
+          TASKLIST_COSMOS_EMULATOR: "1"
+          COSMOS__ENDPOINT: https://localhost:8081
+        run: cargo test -p tasklist-infrastructure --test cosmos_etag -- --nocapture
+
   web:
     name: web (spa)
     runs-on: ubuntu-latest

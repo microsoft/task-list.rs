@@ -112,6 +112,137 @@ body {
   font-size: 0.8rem;
 }
 
+.card__title {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
+
+/* Create-task form: stacks on phones, input + button share a row from ~30rem up. */
+.task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.task-form__label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.task-form__row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.task-form__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #334155;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.task-form__input:focus-visible {
+  outline: 2px solid var(--loading);
+  outline-offset: 1px;
+}
+
+.task-form__submit {
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: var(--online);
+  color: #05310f;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.task-form__submit:disabled {
+  background: #334155;
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.task-form__error {
+  margin: 0;
+  color: var(--offline);
+  font-size: 0.8rem;
+}
+
+.tasks__status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.tasks__status--error {
+  color: var(--offline);
+}
+
+.tasks__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tasks__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--bg);
+}
+
+.tasks__item-title {
+  overflow-wrap: anywhere;
+}
+
+.tasks__badge {
+  flex: 0 0 auto;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: #334155;
+  color: var(--text);
+}
+
+.tasks__badge--todo {
+  background: #334155;
+  color: var(--text);
+}
+
+.tasks__badge--inProgress {
+  background: #78350f;
+  color: #fde68a;
+}
+
+.tasks__badge--done {
+  background: #14532d;
+  color: #bbf7d0;
+}
+
+@media (min-width: 30rem) {
+  .task-form__row {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
 @media (min-width: 40rem) {
   .app {
     padding-top: 3rem;

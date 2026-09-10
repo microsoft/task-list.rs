@@ -21,6 +21,15 @@ pub struct TaskDto {
     pub updated_at: String,
 }
 
+/// Request body for creating a task. Title-only: status defaults to `Todo` and the id /
+/// timestamps are server-minted, so the caller supplies just the title. The domain rule
+/// (trimmed, 1..=200, non-blank) is enforced by `Title::parse` in the use-case.
+#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateTaskRequest {
+    pub title: String,
+}
+
 /// Transport representation of [`TaskStatus`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]

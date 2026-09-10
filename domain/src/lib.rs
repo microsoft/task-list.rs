@@ -9,5 +9,5 @@ mod ids;
 mod task;
 
 pub use error::DomainError;
-pub use ids::{TaskId, Title, UserId};
+pub use ids::{ETag, TaskId, Title, UserId};
 pub use task::{Task, TaskStatus};

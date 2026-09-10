@@ -15,7 +15,13 @@ async fn main() -> ExitCode {
     init_tracing();
 
     let config = AppConfig::from_env();
-    let state = tasklist_api::seed_demo_state();
+    let state = match tasklist_api::build_state(&config).await {
+        Ok(state) => state,
+        Err(error) => {
+            tracing::error!(%error, persistence = ?config.persistence, "failed to build application state");
+            return ExitCode::FAILURE;
+        }
+    };
     let app = tasklist_api::build_router(state, &config.web_dist_dir);
 
     let listener = match tokio::net::TcpListener::bind(&config.bind_address).await {

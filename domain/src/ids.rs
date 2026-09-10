@@ -92,6 +92,30 @@ impl fmt::Display for Title {
     }
 }
 
+/// Optimistic-concurrency token for a persisted task — mirrors the Cosmos server-managed
+/// `_etag`. It is an opaque server-issued string (the client only echoes it back on
+/// update), so it has no structural invariant beyond being non-empty; a task that has not
+/// been persisted yet has no `ETag` (see [`Task::version`](crate::Task::version)).
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct ETag(String);
+
+impl ETag {
+    /// Wrap a server-issued etag string (e.g. when rehydrating from persistence).
+    pub fn new(raw: impl Into<String>) -> Self {
+        Self(raw.into())
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl fmt::Display for ETag {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

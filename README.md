@@ -60,6 +60,54 @@ Vite dev URL it prints — the health indicator turns green off a live `GET /api
 Full launch/restart/liveness details: **[run-app skill](.github/skills/run-app.md)** and
 [`scripts/dev.ps1`](scripts/dev.ps1).
 
+## Cosmos DB Emulator (native Windows) — optional local persistence
+
+The default local loop uses the **in-memory** repository — nothing to install, and tests stay
+hermetic. Persistence is opt-in: set `TASKLIST_PERSISTENCE=cosmos` and the API wires up the real
+Cosmos adapter against the local **[Azure Cosmos DB Emulator](https://learn.microsoft.com/azure/cosmos-db/how-to-develop-emulator)**.
+Locally we use the **native Windows** emulator; **CI** uses the Docker Linux emulator
+([`scripts/docker-compose.yml`](scripts/docker-compose.yml)) — that stays the CI path.
+
+**1. Install** (one-off):
+
+```powershell
+winget install Microsoft.Azure.CosmosEmulator
+# or download the MSI: https://aka.ms/cosmosdb-emulator
+```
+
+**2. Start it** (from the Start menu, or):
+
+```powershell
+& "$env:ProgramFiles\Azure Cosmos DB Emulator\Microsoft.Azure.Cosmos.Emulator.exe"
+```
+
+The emulator serves its gateway at the well-known endpoint **`https://localhost:8081`** and hosts a
+Data Explorer at `https://localhost:8081/_explorer/index.html`. It uses a fixed, publicly documented
+**well-known key** (not a secret), the same one the adapter falls back to locally:
+
+```
+C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==
+```
+
+**3. Opt local dev into Cosmos** — in `scripts/dev-secrets.local.ps1` add:
+
+```powershell
+$env:TASKLIST_PERSISTENCE = 'cosmos'   # opt in; unset/anything-else ⇒ in-memory (default)
+# TASKLIST_ENV stays 'local' — that's what trusts the emulator cert + auto-provisions the DB/container.
+```
+
+With `TASKLIST_ENV=local` (the default) the API trusts the emulator's self-signed certificate
+automatically and provisions the `tasklist` database + `tasks` container on the fly, so **no manual
+certificate import is needed for the app itself**. (A browser hitting the Data Explorer may still show
+a cert warning — cosmetic, and irrelevant to the Rust client.) The endpoint, database, and container
+are overridable via `COSMOS__ENDPOINT` / `COSMOS__DATABASE` / `COSMOS__CONTAINER`.
+
+**Startup wait-gate.** When (and only when) `TASKLIST_PERSISTENCE=cosmos`, the session bootstrap
+([`scripts/session-startup.ps1`](scripts/session-startup.ps1) → [`scripts/cosmos-preflight.ps1`](scripts/cosmos-preflight.ps1))
+waits for the emulator to be reachable before the app starts, and prints an actionable message if it
+isn't up (bounded wait — it never hangs). On the default in-memory loop the preflight is a no-op, so
+startup stays fast.
+
 ## Build & test
 
 Commands live in the skills — single source of truth, not restated here:

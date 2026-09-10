@@ -13,6 +13,11 @@ pub enum ApplicationError {
     #[error("task not found")]
     NotFound,
 
+    /// An optimistic-concurrency conflict: the caller's etag no longer matches the stored
+    /// version (the Cosmos `If-Match` replace returned 412). Maps to 409.
+    #[error("task was modified by another writer")]
+    Conflict,
+
     /// The backing store failed (maps to 500).
     #[error("repository error: {0}")]
     Repository(String),
